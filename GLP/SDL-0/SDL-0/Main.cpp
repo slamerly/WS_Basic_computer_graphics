@@ -36,8 +36,8 @@ int main(int argc, char* argv[])
 	}
 	///////////SETTING UP SDL/////////////
 	//Create a simple window
-	int width = 400;
-	int height = 300;
+	int width = 800;
+	int height = 600;
 	unsigned int center = SDL_WINDOWPOS_CENTERED;
 	SDL_Window* Window = SDL_CreateWindow("My window", center, center, width, height, SDL_WINDOW_OPENGL);
 	//SDL_WINDOW_OPENGL is a u32 flag !
@@ -57,9 +57,13 @@ int main(int argc, char* argv[])
 
 	float vertices[] = {
 		// positions             // colors
-			 0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,
-			-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
-			 0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f
+			 0.0f, -1.0f, 0.0f,  1.0f, 0.0f, 0.0f,
+			-1.0f, -1.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+			 0.0f,  0.0f, 0.0f,  0.0f, 0.0f, 1.0f,
+			 
+			 1.0f,  0.0f, 0.0f,  1.0f, 0.0f, 0.0f,
+			 0.0f,  0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+			 0.0f,  1.0f, 0.0f,  0.0f, 0.0f, 1.0f
 	};
 
 
@@ -178,16 +182,26 @@ int main(int argc, char* argv[])
 			}
 		}
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the screen
-		/*
+		
 		// Get the time in seconds 
 		float timeValue = (float)SDL_GetTicks() / 1000;
 		float redColor = (sin(timeValue) / 2.0f) + 0.5f;
 		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
 		glUseProgram(shaderProgram);
 		glUniform4f(vertexColorLocation, redColor, 1.0f, 0.0f, 1.0f);
-		*/
-		//Shader to use next
+
+		float posX = (cos(timeValue));
+		int vertexPosLocationX = glGetUniformLocation(shaderProgram, "posX");
 		glUseProgram(shaderProgram);
+		glUniform1f(vertexPosLocationX, posX);
+
+		float posY = (sin(timeValue));
+		int vertexPosLocationY = glGetUniformLocation(shaderProgram, "posY");
+		glUseProgram(shaderProgram);
+		glUniform1f(vertexPosLocationY, posY);
+		
+		//Shader to use next
+		//glUseProgram(shaderProgram);
 
 		//VAO to use next
 		glBindVertexArray(vao);
@@ -195,6 +209,7 @@ int main(int argc, char* argv[])
 		//OMG WE FINALLY DRAW ! We use the GL_TRIANGLES primitive type
 		//We draw from vertex 0 and we will be drawing 3 vertices
 		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 3, 3);
 
 		SDL_GL_SwapWindow(Window); // Swapbuffer
 	}
