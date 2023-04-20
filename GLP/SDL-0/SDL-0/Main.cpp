@@ -30,7 +30,7 @@ void ChangeColor(unsigned int shaderProgram)
 	float greenColor = rand() % 101;
 	float blueColor = rand() % 101;
 
-	cout << redColor << ", " << greenColor << ", " << blueColor << endl;
+	//cout << redColor << ", " << greenColor << ", " << blueColor << endl;
 
 	int vertexColorLocation = glGetUniformLocation(shaderProgram, "colorChange");
 	glUseProgram(shaderProgram);
@@ -76,10 +76,15 @@ int main(int argc, char* argv[])
 			 0.5f, -1.0f, 0.0f,  0.0f, 0.0f, 1.0f,
 			-0.5f, -1.0f, 0.0f,  0.0f, 0.0f, 1.0f,
 			 0.0f,  0.0f, 0.0f,  0.0f, 0.0f, 1.0f,
-			 
+
 			-0.5f,  1.0f, 0.0f,  0.0f, 0.0f, 1.0f,
 			 0.0f,  0.0f, 0.0f,  0.0f, 0.0f, 1.0f,
-			 0.5f,  1.0f, 0.0f,  0.0f, 0.0f, 1.0f
+			 0.5f,  1.0f, 0.0f,  0.0f, 0.0f, 1.0f,
+
+			-0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 1.0f,
+			-0.5f,  0.5f, 0.0f,  0.0f, 1.0f, 1.0f,
+			 0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,
+			 0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 1.0f
 	};
 
 
@@ -114,13 +119,14 @@ int main(int argc, char* argv[])
 		"}\n\0";
 	*/
 
+	// ====== DEBUT SHDER 1 ======
+
 	//string vs = LoadShader("vertex.shader");
 	string vs = LoadShader("vertexColors.shader");
 	const char* vertexShaderSource = vs.c_str();
 	//string fs = LoadShader("fragment.shader");
 	string fs = LoadShader("fragmentColors.shader");
 	const char* fragmentShaderSource = fs.c_str();
-
 
 	unsigned int vertexShader;
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -129,7 +135,6 @@ int main(int argc, char* argv[])
 	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
 	//aaaaand… Compile !
 	glCompileShader(vertexShader);
-
 
 	//Do the same with the fragment shader !
 	unsigned int fragmentShader;
@@ -148,14 +153,45 @@ int main(int argc, char* argv[])
 	glLinkProgram(shaderProgram);
 
 	//now that the program is complete, we can use it 
-	glUseProgram(shaderProgram);
+	//glUseProgram(shaderProgram);
+
+	// ====== FIN SHADER 1 ======
+
+	// ====== DEBUT SHADER 2 ======
+
+	string vs2 = LoadShader("vertex.shader");
+	const char* vertexShaderSource2 = vs2.c_str();
+	string fs2 = LoadShader("fragment.shader");
+	const char* fragmentShaderSource2 = fs2.c_str();
+
+	unsigned int vertexShader2;
+	vertexShader2 = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader2, 1, &vertexShaderSource2, NULL);
+	glCompileShader(vertexShader2);
+
+	//Do the same with the fragment shader !
+	unsigned int fragmentShader2;
+	fragmentShader2 = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader2, 1, &fragmentShaderSource2, NULL);
+	glCompileShader(fragmentShader2);
+
+	unsigned int shaderProgram2;
+	shaderProgram2 = glCreateProgram();
+
+	//now attach shaders to use to the program
+	glAttachShader(shaderProgram2, vertexShader2);
+	glAttachShader(shaderProgram2, fragmentShader2);
+
+	//and link it 
+	glLinkProgram(shaderProgram2);
+
+	// ====== FIN SHADER 2 ======
 
 
 	//Create one ID to be given at object generation
 	unsigned int vao;
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
-
 
 	//Binds the buffer linked to this ID to the vertex array buffer to be rendered. Put 0 instead of vbo to reset the value.
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -177,6 +213,22 @@ int main(int argc, char* argv[])
 	glEnableVertexAttribArray(1);
 
 
+	// ========================== VAO2
+
+	//Create one ID to be given at object generation
+	unsigned int vao2;
+	glGenVertexArrays(1, &vao2);
+	glBindVertexArray(vao2);
+
+	//Binds the buffer linked to this ID to the vertex array buffer to be rendered. Put 0 instead of vbo to reset the value.
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	//Finally send the vertices array in the array buffer 
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(0);
+
 	//Use depth management
 	glEnable(GL_DEPTH_TEST);
 
@@ -190,16 +242,17 @@ int main(int argc, char* argv[])
 	int vertexColorLocation = glGetUniformLocation(shaderProgram, "colorChange");
 	glUseProgram(shaderProgram);
 	glUniform4f(vertexColorLocation, 0.0f, 0.0f, 1.0f, 1.0f);
-	/*
-	if (rand() % 2 == 1)
-		negX = true;
-	if (rand() % 2 == 1)
-		negY = true;
-		*/
 
 	float currentPosX = -4.4f;
 	float currentPosY = 3.9f;
 	float scale = 0.0005f;
+
+	// Rectangle
+	int dir = 0;
+
+	float currentPosX2 = 3.0f;
+	float currentPosY2 = -3.0f;
+	float scale2 = 0.0005f;
 
 	bool isRunning = true;
 	while (isRunning) {
@@ -270,6 +323,14 @@ int main(int argc, char* argv[])
 		//We draw from vertex 0 and we will be drawing 3 vertices
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDrawArrays(GL_TRIANGLES, 3, 3);
+
+		glUseProgram(shaderProgram2);
+
+
+		//glBindVertexArray(vao2);
+		glDrawArrays(GL_TRIANGLE_FAN, 6, 4);
+
+		glUseProgram(shaderProgram);
 
 		SDL_GL_SwapWindow(Window); // Swapbuffer
 	}
