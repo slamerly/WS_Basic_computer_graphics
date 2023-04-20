@@ -23,6 +23,20 @@ string LoadShader(string fileName) {
 	return fileText;
 }
 
+void ChangeColor(unsigned int shaderProgram)
+{
+	//float redColor = (sin(time) / 2.0f) + 0.5f;
+	float redColor = rand() % 101;
+	float greenColor = rand() % 101;
+	float blueColor = rand() % 101;
+
+	cout << redColor << ", " << greenColor << ", " << blueColor << endl;
+
+	int vertexColorLocation = glGetUniformLocation(shaderProgram, "colorChange");
+	glUseProgram(shaderProgram);
+	glUniform4f(vertexColorLocation, redColor / 100, greenColor / 100 , blueColor / 100, 1.0f);
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -42,6 +56,8 @@ int main(int argc, char* argv[])
 	SDL_Window* Window = SDL_CreateWindow("My window", center, center, width, height, SDL_WINDOW_OPENGL);
 	//SDL_WINDOW_OPENGL is a u32 flag !
 
+	srand(time(NULL));
+
 
 	//Create an OpenGL compatible context to let glew draw on it
 	SDL_GLContext Context = SDL_GL_CreateContext(Window);
@@ -57,13 +73,13 @@ int main(int argc, char* argv[])
 
 	float vertices[] = {
 		// positions             // colors
-			 0.0f, -1.0f, 0.0f,  1.0f, 0.0f, 0.0f,
-			-1.0f, -1.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+			 0.5f, -1.0f, 0.0f,  0.0f, 0.0f, 1.0f,
+			-0.5f, -1.0f, 0.0f,  0.0f, 0.0f, 1.0f,
 			 0.0f,  0.0f, 0.0f,  0.0f, 0.0f, 1.0f,
 			 
-			 1.0f,  0.0f, 0.0f,  1.0f, 0.0f, 0.0f,
-			 0.0f,  0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-			 0.0f,  1.0f, 0.0f,  0.0f, 0.0f, 1.0f
+			-0.5f,  1.0f, 0.0f,  0.0f, 0.0f, 1.0f,
+			 0.0f,  0.0f, 0.0f,  0.0f, 0.0f, 1.0f,
+			 0.5f,  1.0f, 0.0f,  0.0f, 0.0f, 1.0f
 	};
 
 
@@ -167,6 +183,23 @@ int main(int argc, char* argv[])
 	//0 is our origin, the higher the z, the farther the object
 	glDepthFunc(GL_LESS);
 
+	// Initilize
+	bool negX = false;
+	bool negY = true;
+
+	int vertexColorLocation = glGetUniformLocation(shaderProgram, "colorChange");
+	glUseProgram(shaderProgram);
+	glUniform4f(vertexColorLocation, 0.0f, 0.0f, 1.0f, 1.0f);
+	/*
+	if (rand() % 2 == 1)
+		negX = true;
+	if (rand() % 2 == 1)
+		negY = true;
+		*/
+
+	float currentPosX = -4.4f;
+	float currentPosY = 3.9f;
+	float scale = 0.0005f;
 
 	bool isRunning = true;
 	while (isRunning) {
@@ -185,21 +218,48 @@ int main(int argc, char* argv[])
 		
 		// Get the time in seconds 
 		float timeValue = (float)SDL_GetTicks() / 1000;
-		float redColor = (sin(timeValue) / 2.0f) + 0.5f;
-		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-		glUseProgram(shaderProgram);
-		glUniform4f(vertexColorLocation, redColor, 1.0f, 0.0f, 1.0f);
+		
+		// Broders
+		if (currentPosX >= 4.5f)
+		{
+			ChangeColor(shaderProgram);
+			negX = true;
+		}
+		if (currentPosX <= -4.5f)
+		{
+			ChangeColor(shaderProgram);
+			negX = false;
+		}
+		if (currentPosY >= 4)
+		{
+			ChangeColor(shaderProgram);
+			negY = true;
+		}
+		if (currentPosY <= -4)
+		{
+			ChangeColor(shaderProgram);
+			negY = false;
+		}
 
-		float posX = (cos(timeValue));
+		// Direction
+		if (negX)
+			currentPosX -= scale;
+		else
+			currentPosX += scale;
+		
+		if (negY)
+			currentPosY -= scale;
+		else
+			currentPosY += scale;
+
 		int vertexPosLocationX = glGetUniformLocation(shaderProgram, "posX");
 		glUseProgram(shaderProgram);
-		glUniform1f(vertexPosLocationX, posX);
+		glUniform1f(vertexPosLocationX, currentPosX);
 
-		float posY = (sin(timeValue));
 		int vertexPosLocationY = glGetUniformLocation(shaderProgram, "posY");
 		glUseProgram(shaderProgram);
-		glUniform1f(vertexPosLocationY, posY);
-		
+		glUniform1f(vertexPosLocationY, currentPosY);
+
 		//Shader to use next
 		//glUseProgram(shaderProgram);
 
